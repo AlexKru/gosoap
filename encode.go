@@ -220,7 +220,7 @@ func (tokens *tokenData) startBody(m, n string) error {
 		for key, value := range customEnvelopeAttrs {
 			if value == n {
 				parts := strings.Split(key, ":")
-				prefix = parts[0]
+				prefix = parts[1]
 				break
 			}
 		}
