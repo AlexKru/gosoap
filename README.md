@@ -4,7 +4,7 @@ package to help with SOAP integrations (client)
 ### Install
 
 ```bash
-go get github.com/tiaguinho/gosoap
+go get github.com/alexkru/gosoap
 ```
 
 ### Examples
@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tiaguinho/gosoap"
+	"github.com/alexkru/gosoap"
 )
 
 // GetIPLocationResponse will hold the Soap response

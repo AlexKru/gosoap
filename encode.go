@@ -4,10 +4,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 var (
-	soapPrefix = "soap"
+	soapPrefix                            = "soap"
 	customEnvelopeAttrs map[string]string = nil
 )
 
@@ -130,7 +131,7 @@ func (tokens *tokenData) startEnvelope() {
 		e.Attr = make([]xml.Attr, 0)
 		for local, value := range customEnvelopeAttrs {
 			e.Attr = append(e.Attr, xml.Attr{
-				Name: xml.Name{Space: "", Local: local},
+				Name:  xml.Name{Space: "", Local: local},
 				Value: value,
 			})
 		}
@@ -213,14 +214,37 @@ func (tokens *tokenData) startBody(m, n string) error {
 		return fmt.Errorf("method or namespace is empty")
 	}
 
-	r := xml.StartElement{
-		Name: xml.Name{
-			Space: "",
-			Local: m,
-		},
-		Attr: []xml.Attr{
-			{Name: xml.Name{Space: "", Local: "xmlns"}, Value: n},
-		},
+	prefix := ""
+
+	if customEnvelopeAttrs != nil {
+		for key, value := range customEnvelopeAttrs {
+			if value == n {
+				parts := strings.Split(key, ":")
+				prefix = parts[0]
+				break
+			}
+		}
+	}
+
+	var r xml.StartElement
+
+	if prefix == "" {
+		r = xml.StartElement{
+			Name: xml.Name{
+				Space: "",
+				Local: m,
+			},
+			Attr: []xml.Attr{
+				{Name: xml.Name{Space: "", Local: "xmlns"}, Value: n},
+			},
+		}
+	} else {
+		r = xml.StartElement{
+			Name: xml.Name{
+				Space: "",
+				Local: fmt.Sprintf("%s:%s", prefix, m),
+			},
+		}
 	}
 
 	tokens.data = append(tokens.data, b, r)
