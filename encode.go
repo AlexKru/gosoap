@@ -53,7 +53,7 @@ func (c process) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
 	tokens.recursiveEncode(c.Request.Params)
 
 	//end envelope
-	tokens.endBody(c.Request.Method)
+	tokens.endBody(c.Request.Method, namespace)
 	tokens.endEnvelope()
 
 	for _, t := range tokens.data {
@@ -214,17 +214,7 @@ func (tokens *tokenData) startBody(m, n string) error {
 		return fmt.Errorf("method or namespace is empty")
 	}
 
-	prefix := ""
-
-	if customEnvelopeAttrs != nil {
-		for key, value := range customEnvelopeAttrs {
-			if value == n {
-				parts := strings.Split(key, ":")
-				prefix = parts[1]
-				break
-			}
-		}
-	}
+	prefix := tokens.prefixForNs(n)
 
 	var r xml.StartElement
 
@@ -253,12 +243,18 @@ func (tokens *tokenData) startBody(m, n string) error {
 }
 
 // endToken close body of the envelope
-func (tokens *tokenData) endBody(m string) {
+func (tokens *tokenData) endBody(m string, n string) {
 	b := xml.EndElement{
 		Name: xml.Name{
 			Space: "",
 			Local: fmt.Sprintf("%s:Body", soapPrefix),
 		},
+	}
+
+	prefix := tokens.prefixForNs(n)
+
+	if prefix != "" {
+		m = fmt.Sprintf("%s:%s", prefix, m)
 	}
 
 	r := xml.EndElement{
@@ -269,4 +265,20 @@ func (tokens *tokenData) endBody(m string) {
 	}
 
 	tokens.data = append(tokens.data, r, b)
+}
+
+func (tokens *tokenData) prefixForNs(ns string) string {
+	prefix := ""
+
+	if customEnvelopeAttrs != nil {
+		for key, value := range customEnvelopeAttrs {
+			if value == ns {
+				parts := strings.Split(key, ":")
+				prefix = parts[1]
+				break
+			}
+		}
+	}
+
+	return prefix
 }
